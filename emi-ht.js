@@ -162,8 +162,10 @@ Qualtrics.SurveyEngine.addOnload(function () {
       predictedOutcome === actualOutcome ? 1 : 0
     );
 
+    // Check if user prediction is accurate
+    if (predictedOutcome === actualOutcome) correctStreak++;
+
     // Check for reversal condition
-    correctStreak++;
     if (correctStreak >= correctLimit) {
       // Reverse the reward and punishment
       isReversed = !isReversed;
