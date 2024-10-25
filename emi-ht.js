@@ -162,8 +162,26 @@ Qualtrics.SurveyEngine.addOnload(function () {
       predictedOutcome === actualOutcome ? 1 : 0
     );
 
-    // Check if user prediction is accurate
+    // If user prediction is accurate, increase the correct streak, else restart counter
     if (predictedOutcome === actualOutcome) correctStreak++;
+    else correctStreak = 0;
+
+    // Logging
+    console.log(
+      "current streak:",
+      correctStreak,
+      " correct limit:",
+      correctLimit
+    );
+    console.log("stimulus", stimulus);
+    console.log(
+      "user prediction:",
+      predictedOutcome,
+      " actual outcome:",
+      actualOutcome,
+      "is user correct:",
+      predictedOutcome === actualOutcome
+    );
 
     // Check for reversal condition
     if (correctStreak >= correctLimit) {
@@ -176,6 +194,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
       lastStimulus = stimulus; // Remember the current stimulus to repeat
       sameStimulusAfterReversal = true; // Set flag to show the same stimulus again
       Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 1); // Log reversal
+
+      console.log("ReversalOccurred");
     } else {
       Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 0); // No reversal in this trial
     }
