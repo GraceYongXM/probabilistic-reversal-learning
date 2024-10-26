@@ -7,12 +7,14 @@ Qualtrics.SurveyEngine.addOnload(function () {
   var isReversed = false;
   var lastStimulus = null; // Track the last stimulus shown
   var sameStimulusAfterReversal = false; // Flag for showing the same stimulus after reversal
+  var startReversal = false; // Flag for the start of reversal
 
   // Stimuli
   var stimuli = {
     A: "reward", // Stimulus A initially rewards
     B: "punishment", // Stimulus B initially punishes
   };
+  var isAReward = true;
 
   // Function to show instructions before starting
   function showStartInstruction() {
@@ -57,7 +59,11 @@ Qualtrics.SurveyEngine.addOnload(function () {
     var displayedStimulus;
 
     // Check if we need to show the same stimulus after a reversal
-    if (sameStimulusAfterReversal) {
+    if (startReversal) {
+      displayedStimulus = isAReward ? "A" : "B"; // Use the current reward stimulus
+      sameStimulusAfterReversal = true; // Set flag to show the same stimulus for the next trial
+      startReversal = false;
+    } else if (sameStimulusAfterReversal) {
       displayedStimulus = lastStimulus; // Use the last stimulus shown
       sameStimulusAfterReversal = false; // Reset the flag for future trials
     } else {
@@ -184,18 +190,23 @@ Qualtrics.SurveyEngine.addOnload(function () {
     );
 
     // Check for reversal condition
-    if (correctStreak >= correctLimit) {
+    // Start of reversal
+    if (correctStreak === correctLimit) {
+      // Unepxected Reward
       // Reverse the reward and punishment
       isReversed = !isReversed;
       stimuli.A = isReversed ? "punishment" : "reward"; // Update stimulus A
       stimuli.B = isReversed ? "reward" : "punishment"; // Update stimulus B
+      isAReward = !isAReward;
+      startReversal = true;
       correctLimit = Math.floor(Math.random() * 5) + 5; // Reset learning criterion
       correctStreak = 0; // Reset streak after reversal
-      lastStimulus = stimulus; // Remember the current stimulus to repeat
-      sameStimulusAfterReversal = true; // Set flag to show the same stimulus again
       Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 1); // Log reversal
 
       console.log("ReversalOccurred");
+      console.log("is A reward:", isAReward);
+    } else if (sameStimulusAfterReversal) {
+      lastStimulus = stimulus; // Remember the current stimulus to repeat
     } else {
       Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 0); // No reversal in this trial
     }
