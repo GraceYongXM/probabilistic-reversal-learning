@@ -10,11 +10,18 @@ Qualtrics.SurveyEngine.addOnload(function () {
   var sameStimulusAfterReversal = false; // Flag for showing the same stimulus after reversal
   var startReversal = false; // Flag for the start of reversal
 
-  // Stimuli
+  // Randomise starting stimuli
   var stimuli = {
     A: "reward", // Stimulus A initially rewards
     B: "punishment", // Stimulus B initially punishes
   };
+  if (Math.random() < 0.5) {
+    stimuli = {
+      A: "punishment", // Stimulus A initially punishes
+      B: "reward", // Stimulus B initially rewards
+    };
+  }
+
   var isAPunishment = false;
 
   // Function to show instructions before starting
