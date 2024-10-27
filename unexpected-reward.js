@@ -1,3 +1,4 @@
+// Unexpected Reward
 Qualtrics.SurveyEngine.addOnload(function () {
   // Initial setup
   var trialNumber = 1;
@@ -88,13 +89,11 @@ Qualtrics.SurveyEngine.addOnload(function () {
       "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_liS2mCAu6ovYGGJ' style='width: 100px; height: 100px;'>";
     stimulusA.style.border =
       displayedStimulus === "A" ? "5px solid black" : "none"; // Highlight if selected
-    stimulusContainer.appendChild(stimulusA);
 
     // Create fixation cross
     var fixationCross = document.createElement("div");
     fixationCross.innerHTML = "+";
     fixationCross.style.fontSize = "32px";
-    stimulusContainer.appendChild(fixationCross);
 
     // Create stimulus B
     var stimulusB = document.createElement("div");
@@ -102,7 +101,17 @@ Qualtrics.SurveyEngine.addOnload(function () {
       "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_qbvwqRIC7JeRiVX' style='width: 100px; height: 100px;'>";
     stimulusB.style.border =
       displayedStimulus === "B" ? "5px solid black" : "none"; // Highlight if selected
-    stimulusContainer.appendChild(stimulusB);
+
+    // Randomise the position of stimulus A and stimulus B
+    if (Math.random() < 0.5) {
+      stimulusContainer.appendChild(stimulusA);
+      stimulusContainer.appendChild(fixationCross);
+      stimulusContainer.appendChild(stimulusB);
+    } else {
+      stimulusContainer.appendChild(stimulusB);
+      stimulusContainer.appendChild(fixationCross);
+      stimulusContainer.appendChild(stimulusA);
+    }
 
     // Append the container to the body
     document.body.appendChild(stimulusContainer);
