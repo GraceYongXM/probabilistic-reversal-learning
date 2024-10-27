@@ -66,7 +66,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
       startReversal = false;
     } else if (sameStimulusAfterReversal) {
       displayedStimulus = lastStimulus; // Use the last stimulus shown
-      sameStimulusAfterReversal = false; // Reset the flag for future trials
+
+      console.log("Showing the same stimulus");
     } else {
       // Shuffle stimuli
       var stimulusOrder = Math.random() < 0.5 ? ["A", "B"] : ["B", "A"];
@@ -216,6 +217,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
       console.log("is A punishment:", isAPunishment);
     } else if (sameStimulusAfterReversal) {
       lastStimulus = stimulus; // Remember the current stimulus to repeat
+      if (predictedOutcome === actualOutcome) sameStimulusAfterReversal = false; // If user has learnt, reset the flag for future trials so the next stimulus will be random
     } else {
       Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 0); // No reversal in this trial
     }
