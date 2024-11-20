@@ -1,5 +1,7 @@
 // Unexpected Reward
 Qualtrics.SurveyEngine.addOnload(function () {
+  this.hideNextButton();
+
   // Initial setup
   var trialNumber = 1;
   var totalTrials = 120;
@@ -26,7 +28,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to show instructions before starting
   function showStartInstruction() {
-    document.body.innerHTML = ""; // Clear the page
+    // document.body.innerHTML = ""; // Clear the page
     var startDiv = document.createElement("div");
     startDiv.id = "startInstruction";
     startDiv.innerHTML = "Click <b>HERE</b> to start"; // Add your instruction
@@ -34,7 +36,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     startDiv.style.textAlign = "center";
     startDiv.style.marginTop = "200px";
     startDiv.style.cursor = "pointer"; // Change cursor to indicate clickable
-    document.body.appendChild(startDiv);
+    document.body.prepend(startDiv);
 
     // Wait for user to click before starting the task
     startDiv.onclick = function () {
@@ -45,14 +47,15 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to show fixation cross
   function showFixationCross() {
-    document.body.innerHTML = ""; // Clear the page
+    // document.getElementById("startInstruction").innerHTML = "";
+    // document.body.innerHTML = ""; // Clear the page
     var fixationCross = document.createElement("div");
     fixationCross.id = "fixationCross";
     fixationCross.innerHTML = "+";
     fixationCross.style.fontSize = "32px";
     fixationCross.style.textAlign = "center";
     fixationCross.style.marginTop = "200px";
-    document.body.appendChild(fixationCross);
+    document.body.prepend(fixationCross);
 
     setTimeout(function () {
       fixationCross.remove();
@@ -62,7 +65,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to display stimulus and capture response
   function displayStimulus() {
-    document.body.innerHTML = ""; // Clear the page
+    // document.body.innerHTML = ""; // Clear the page
+    // document.getElementById("fixationCross").innerHTML = "";
 
     var displayedStimulus;
 
@@ -86,6 +90,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     // Create the container for stimuli
     var stimulusContainer = document.createElement("div");
+    stimulusContainer.id = "stimulusContainer";
     stimulusContainer.style.display = "flex";
     stimulusContainer.style.flexDirection = "column"; // For vertical alignment
     stimulusContainer.style.alignItems = "center"; // Center alignment
@@ -122,13 +127,14 @@ Qualtrics.SurveyEngine.addOnload(function () {
     }
 
     // Append the container to the body
-    document.body.appendChild(stimulusContainer);
+    document.body.prepend(stimulusContainer);
 
     // Capture keyboard input
     var responseCaptured = false;
     var responseTimeout = setTimeout(function () {
       if (!responseCaptured) {
         logResponse("none", displayedStimulus, actualOutcome); // No response captured
+        stimulusContainer.remove();
       }
     }, 1500); // Allow 1500 ms to respond
 
@@ -142,13 +148,15 @@ Qualtrics.SurveyEngine.addOnload(function () {
         clearTimeout(responseTimeout); // Stop timeout
         var predictedOutcome = key === "p" ? "punishment" : "reward"; // Prediction based on key press
         logResponse(predictedOutcome, displayedStimulus, actualOutcome); // Log the response
+        stimulusContainer.remove();
       }
     };
   }
 
   // Log the response and provide feedback
   function logResponse(predictedOutcome, stimulus, actualOutcome) {
-    document.body.innerHTML = ""; // Clear the page for feedback
+    // document.getElementById("stimulusContainer").innerHTML = "";
+    // document.body.innerHTML = ""; // Clear the page for feedback
 
     var feedbackDiv = document.createElement("div");
     feedbackDiv.id = "feedback";
@@ -169,7 +177,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
         "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_V4exMgkjGPOqGEl' style='width: 100px; height: 100px;'>";
     }
 
-    document.body.appendChild(feedbackDiv);
+    document.body.prepend(feedbackDiv);
 
     // Log trial data
     Qualtrics.SurveyEngine.setEmbeddedData("TrialNumber", trialNumber);
@@ -230,7 +238,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     }
 
     // Move to the next trial after feedback
-    setTimeout(function () {
+    setTimeout(() => {
       feedbackDiv.remove();
       trialNumber++;
 
@@ -239,7 +247,11 @@ Qualtrics.SurveyEngine.addOnload(function () {
         showFixationCross(); // Start next trial
       } else {
         alert("Block complete!");
-        this.clickNextButton(); // Move to next question/block in Qualtrics
+        // Qualtrics.SurveyEngine.showNextButton();
+        var nextButton = document.querySelector(".NextButton");
+        if (nextButton) {
+          nextButton.style.display = "block"; // Make the button visible
+        }
       }
     }, 500); // Show feedback for 500 ms
   }
