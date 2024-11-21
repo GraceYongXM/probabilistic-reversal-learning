@@ -247,10 +247,13 @@ Qualtrics.SurveyEngine.addOnload(function () {
         showFixationCross(); // Start next trial
       } else {
         alert("Block complete!");
-        // Qualtrics.SurveyEngine.showNextButton();
         var nextButton = document.querySelector(".NextButton");
         if (nextButton) {
-          nextButton.style.display = "block"; // Make the button visible
+          // Make the button visible
+          nextButton.style.display = "block";
+
+          var question = document.querySelector(".QuestionText");
+          question.innerHTML = "Please proceed by clicking Next";
         }
       }
     }, 500); // Show feedback for 500 ms
