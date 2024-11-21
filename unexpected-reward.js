@@ -3,6 +3,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
   this.hideNextButton();
 
   // Initial setup
+  var data = [];
   var trialNumber = 1;
   var totalTrials = 120;
   var correctStreak = 0;
@@ -28,7 +29,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to show instructions before starting
   function showStartInstruction() {
-    // document.body.innerHTML = ""; // Clear the page
     var startDiv = document.createElement("div");
     startDiv.id = "startInstruction";
     startDiv.innerHTML = "Click <b>HERE</b> to start"; // Add your instruction
@@ -47,8 +47,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to show fixation cross
   function showFixationCross() {
-    // document.getElementById("startInstruction").innerHTML = "";
-    // document.body.innerHTML = ""; // Clear the page
     var fixationCross = document.createElement("div");
     fixationCross.id = "fixationCross";
     fixationCross.innerHTML = "+";
@@ -65,9 +63,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to display stimulus and capture response
   function displayStimulus() {
-    // document.body.innerHTML = ""; // Clear the page
-    // document.getElementById("fixationCross").innerHTML = "";
-
     var displayedStimulus;
 
     // Check if we need to show the same stimulus after a reversal
@@ -155,9 +150,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Log the response and provide feedback
   function logResponse(predictedOutcome, stimulus, actualOutcome) {
-    // document.getElementById("stimulusContainer").innerHTML = "";
-    // document.body.innerHTML = ""; // Clear the page for feedback
-
     var feedbackDiv = document.createElement("div");
     feedbackDiv.id = "feedback";
     feedbackDiv.style.fontSize = "32px";
@@ -179,19 +171,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     document.body.prepend(feedbackDiv);
 
-    // Log trial data
-    Qualtrics.SurveyEngine.setEmbeddedData("TrialNumber", trialNumber);
-    Qualtrics.SurveyEngine.setEmbeddedData("DisplayedStimulus", stimulus);
-    Qualtrics.SurveyEngine.setEmbeddedData(
-      "ParticipantPrediction",
-      predictedOutcome
-    );
-    Qualtrics.SurveyEngine.setEmbeddedData("ActualOutcome", actualOutcome);
-    Qualtrics.SurveyEngine.setEmbeddedData("FeedbackGiven", actualOutcome);
-    Qualtrics.SurveyEngine.setEmbeddedData(
-      "IsCorrect",
-      predictedOutcome === actualOutcome ? 1 : 0
-    );
+    var isCorrect = predictedOutcome === actualOutcome ? 1 : 0;
 
     // If user prediction is accurate, increase the correct streak, else restart counter
     if (predictedOutcome === actualOutcome) correctStreak++;
@@ -216,6 +196,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     // Check for reversal condition
     // Start of reversal
+    var reversalOccurred;
     if (correctStreak === correctLimit) {
       // Unepxected Reward
       // Reverse the reward and punishment
@@ -226,7 +207,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
       startReversal = true;
       correctLimit = Math.floor(Math.random() * 5) + 5; // Reset learning criterion
       correctStreak = 0; // Reset streak after reversal
-      Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 1); // Log reversal
+      reversalOccurred = 1;
 
       console.log("ReversalOccurred");
       console.log("is A reward:", isAReward);
@@ -234,8 +215,21 @@ Qualtrics.SurveyEngine.addOnload(function () {
       lastStimulus = stimulus; // Remember the current stimulus to repeat
       if (predictedOutcome === actualOutcome) sameStimulusAfterReversal = false; // If user has learnt, reset the flag for future trials so the next stimulus will be random
     } else {
-      Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 0); // No reversal in this trial
+      reversalOccurred = 0;
     }
+
+    data.push({
+      trialNumber: trialNumber,
+      displayStimulus: stimulus,
+      participantPrediction: predictedOutcome,
+      actualOutcome: actualOutcome,
+      isCorrect: isCorrect,
+      reversalOccurred: reversalOccurred,
+    });
+    console.log("data", data);
+
+    if (trialNumber === totalTrials)
+      Qualtrics.SurveyEngine.setEmbeddedData("Data", JSON.stringify(data));
 
     // Move to the next trial after feedback
     setTimeout(() => {
