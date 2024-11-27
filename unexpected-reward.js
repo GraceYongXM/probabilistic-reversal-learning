@@ -7,7 +7,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
   var noResponse = 0;
   var trialNumber = 1;
   var totalTrials = 120;
-  var reversalStreak = 0;
+  var reversalStreak = -1; // First reversal is not counted in the streak
   var correctStreak = 0;
   var correctLimit = Math.floor(Math.random() * 5) + 5; // Random criterion between 5 and 9
   var isReversed = false;
@@ -16,6 +16,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
   var startReversal = false; // Flag for the start of reversal
   var startTime;
   var responseTime;
+  var reversalOccurred;
 
   // Randomise starting stimuli
   var stimuli = {
@@ -67,6 +68,9 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to display stimulus and capture response
   function displayStimulus() {
+    console.log("Trial", trialNumber);
+
+    var reversalOccurred = 0;
     var displayedStimulus;
     startTime = Date.now();
 
@@ -75,7 +79,9 @@ Qualtrics.SurveyEngine.addOnload(function () {
       displayedStimulus = isAReward ? "A" : "B"; // Use the current reward stimulus
       sameStimulusAfterReversal = true; // Set flag to show the same stimulus for the next trial
       startReversal = false;
-      reversalStreak = 1; // Starts reversal streak
+      reversalOccurred = 1;
+
+      console.log("ReversalOccurred");
     } else if (sameStimulusAfterReversal) {
       displayedStimulus = lastStimulus; // Use the last stimulus shown
 
@@ -187,7 +193,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     // Logging
     console.log(
-      "current streak:",
+      "current updated streak:",
       correctStreak,
       " correct limit:",
       correctLimit
@@ -204,7 +210,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     // Check for reversal condition
     // Start of reversal
-    var reversalOccurred;
     if (correctStreak === correctLimit) {
       // Unepxected Reward
       // Reverse the reward and punishment
@@ -215,16 +220,19 @@ Qualtrics.SurveyEngine.addOnload(function () {
       startReversal = true;
       correctLimit = Math.floor(Math.random() * 5) + 5; // Reset learning criterion
       correctStreak = 0; // Reset streak after reversal
-      reversalOccurred = 1;
 
-      console.log("ReversalOccurred");
       console.log("is A reward:", isAReward);
     } else if (sameStimulusAfterReversal) {
       lastStimulus = stimulus; // Remember the current stimulus to repeat
-      if (predictedOutcome === actualOutcome) sameStimulusAfterReversal = false; // If user has learnt, reset the flag for future trials so the next stimulus will be random
+      reversalStreak++;
+      if (predictedOutcome === actualOutcome) {
+        sameStimulusAfterReversal = false; // If user has learnt, reset the flag for future trials so the next stimulus will be random
+      }
     } else {
-      reversalOccurred = 0;
+      reversalStreak = -1;
     }
+
+    console.log("reversalStreak", reversalStreak);
 
     data.push({
       trialNumber: trialNumber,
@@ -235,6 +243,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
       isCorrect: isCorrect,
       reversalOccurred: reversalOccurred,
       correctStreak: correctStreak,
+      reversalStreak: reversalStreak,
       responseTime: responseTime,
     });
     console.log("data", data);
