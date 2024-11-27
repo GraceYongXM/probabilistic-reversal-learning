@@ -139,6 +139,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     var responseCaptured = false;
     var responseTimeout = setTimeout(function () {
       if (!responseCaptured) {
+        responseTime = 0;
         logResponse("none", displayedStimulus, actualOutcome); // No response captured
         stimulusContainer.remove();
       }
