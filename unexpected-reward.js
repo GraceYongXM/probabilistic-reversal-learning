@@ -4,14 +4,18 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Initial setup
   var data = [];
+  var noResponse = 0;
   var trialNumber = 1;
   var totalTrials = 120;
+  var reversalStreak = 0;
   var correctStreak = 0;
   var correctLimit = Math.floor(Math.random() * 5) + 5; // Random criterion between 5 and 9
   var isReversed = false;
   var lastStimulus = null; // Track the last stimulus shown
   var sameStimulusAfterReversal = false; // Flag for showing the same stimulus after reversal
   var startReversal = false; // Flag for the start of reversal
+  var startTime;
+  var responseTime;
 
   // Randomise starting stimuli
   var stimuli = {
@@ -64,12 +68,14 @@ Qualtrics.SurveyEngine.addOnload(function () {
   // Function to display stimulus and capture response
   function displayStimulus() {
     var displayedStimulus;
+    startTime = Date.now();
 
     // Check if we need to show the same stimulus after a reversal
     if (startReversal) {
       displayedStimulus = isAReward ? "A" : "B"; // Use the current reward stimulus
       sameStimulusAfterReversal = true; // Set flag to show the same stimulus for the next trial
       startReversal = false;
+      reversalStreak = 1; // Starts reversal streak
     } else if (sameStimulusAfterReversal) {
       displayedStimulus = lastStimulus; // Use the last stimulus shown
 
@@ -139,6 +145,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
       var key = event.key.toLowerCase();
 
       if (key === "p" || key === "r") {
+        responseTime = Date.now() - startTime;
         responseCaptured = true;
         clearTimeout(responseTimeout); // Stop timeout
         var predictedOutcome = key === "p" ? "punishment" : "reward"; // Prediction based on key press
@@ -150,6 +157,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Log the response and provide feedback
   function logResponse(predictedOutcome, stimulus, actualOutcome) {
+    var isCorrect = predictedOutcome === actualOutcome ? 1 : 0;
+
     var feedbackDiv = document.createElement("div");
     feedbackDiv.id = "feedback";
     feedbackDiv.style.fontSize = "32px";
@@ -160,7 +169,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
     if (predictedOutcome === "none") {
       feedbackDiv.innerHTML = "No Response"; // No response
       feedbackDiv.style.color = "red";
-      Qualtrics.SurveyEngine.setEmbeddedData("NoResponse", 1);
+      noResponse = 1;
+      // Qualtrics.SurveyEngine.setEmbeddedData("NoResponse", 1);
     } else if (actualOutcome === "reward") {
       feedbackDiv.innerHTML =
         "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_bMpiEUVsi4mNi6b' alt='Reward' style='width: 100px; height: 100px;'>";
@@ -170,8 +180,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
     }
 
     document.body.prepend(feedbackDiv);
-
-    var isCorrect = predictedOutcome === actualOutcome ? 1 : 0;
 
     // If user prediction is accurate, increase the correct streak, else restart counter
     if (predictedOutcome === actualOutcome) correctStreak++;
@@ -221,10 +229,13 @@ Qualtrics.SurveyEngine.addOnload(function () {
     data.push({
       trialNumber: trialNumber,
       displayStimulus: stimulus,
+      noResponse: noResponse,
       participantPrediction: predictedOutcome,
       actualOutcome: actualOutcome,
       isCorrect: isCorrect,
       reversalOccurred: reversalOccurred,
+      correctStreak: correctStreak,
+      responseTime: responseTime,
     });
     console.log("data", data);
 
