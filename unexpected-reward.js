@@ -4,7 +4,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Initial setup
   var data = [];
-  var noResponse = 0;
   var trialNumber = 1;
   var totalTrials = 120;
   var reversalStreak = -1; // First reversal is not counted in the streak
@@ -164,6 +163,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
   // Log the response and provide feedback
   function logResponse(predictedOutcome, stimulus, actualOutcome) {
     var isCorrect = predictedOutcome === actualOutcome ? 1 : 0;
+    var noResponse = 0;
 
     var feedbackDiv = document.createElement("div");
     feedbackDiv.id = "feedback";
@@ -176,7 +176,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
       feedbackDiv.innerHTML = "No Response"; // No response
       feedbackDiv.style.color = "red";
       noResponse = 1;
-      // Qualtrics.SurveyEngine.setEmbeddedData("NoResponse", 1);
     } else if (actualOutcome === "reward") {
       feedbackDiv.innerHTML =
         "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_bMpiEUVsi4mNi6b' alt='Reward' style='width: 100px; height: 100px;'>";
