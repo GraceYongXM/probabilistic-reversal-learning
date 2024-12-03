@@ -15,7 +15,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
   var startReversal = false; // Flag for the start of reversal
   var startTime;
   var responseTime;
-  var reversalOccurred;
+  var reversalOccurred = 0;
 
   // Randomise starting stimuli
   var stimuli = {
@@ -69,7 +69,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
   function displayStimulus() {
     console.log("Trial", trialNumber);
 
-    var reversalOccurred = 0;
+    reversalOccurred = 0;
     var displayedStimulus;
     startTime = Date.now();
 
@@ -196,7 +196,9 @@ Qualtrics.SurveyEngine.addOnload(function () {
       "current updated streak:",
       correctStreak,
       " correct limit:",
-      correctLimit
+      correctLimit,
+      "reversalOccurred",
+      reversalOccurred
     );
     console.log("stimulus", stimulus);
     console.log(
