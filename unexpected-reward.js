@@ -29,7 +29,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     };
   }
 
-  var isAReward = true;
+  var isAReward = stimuli.A === "reward";
 
   // Function to show instructions before starting
   function showStartInstruction() {
