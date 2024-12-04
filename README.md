@@ -1,1 +1,1 @@
-# psych
+# probabilistic reversal learning
