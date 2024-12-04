@@ -9,7 +9,6 @@ Qualtrics.SurveyEngine.addOnload(function () {
   var reversalStreak = -1; // First reversal is not counted in the streak
   var correctStreak = 0;
   var correctLimit = Math.floor(Math.random() * 5) + 5; // Random criterion between 5 and 9
-  var isReversed = false;
   var lastStimulus = null; // Track the last stimulus shown
   var sameStimulusAfterReversal = false; // Flag for showing the same stimulus after reversal
   var startReversal = false; // Flag for the start of reversal
@@ -215,9 +214,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
     if (correctStreak === correctLimit) {
       // Unepxected Reward
       // Reverse the reward and punishment
-      isReversed = !isReversed;
-      stimuli.A = isReversed ? "punishment" : "reward"; // Update stimulus A
-      stimuli.B = isReversed ? "reward" : "punishment"; // Update stimulus B
+      stimuli.A = isAReward ? "punishment" : "reward"; // Update stimulus A
+      stimuli.B = isAReward ? "reward" : "punishment"; // Update stimulus B
       isAReward = !isAReward;
       startReversal = true;
       correctLimit = Math.floor(Math.random() * 5) + 5; // Reset learning criterion
@@ -269,7 +267,8 @@ Qualtrics.SurveyEngine.addOnload(function () {
           nextButton.style.display = "block";
 
           var question = document.querySelector(".QuestionText");
-          question.innerHTML = "Please proceed by clicking Next";
+          question.innerHTML =
+            "In this section, you will be shown 2 stimuli. Press 'R' if you think the stimulus is a reward stimulus and 'P' if you think the stimulus is a punishment stimulus as quickly and accurately as possible. Your response does not affect the outcome and the correct outcome will be shown after your response.";
         }
       }
     }, 500); // Show feedback for 500 ms

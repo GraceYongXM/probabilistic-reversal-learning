@@ -1,14 +1,20 @@
 // Unexpected Punishment
 Qualtrics.SurveyEngine.addOnload(function () {
+  this.hideNextButton();
+
   // Initial setup
+  var data = [];
   var trialNumber = 1;
   var totalTrials = 120;
+  var reversalStreak = -1; // First reversal is not counted in the streak
   var correctStreak = 0;
   var correctLimit = Math.floor(Math.random() * 5) + 5; // Random criterion between 5 and 9
-  var isReversed = false;
   var lastStimulus = null; // Track the last stimulus shown
   var sameStimulusAfterReversal = false; // Flag for showing the same stimulus after reversal
   var startReversal = false; // Flag for the start of reversal
+  var startTime;
+  var responseTime;
+  var reversalOccurred = 0;
 
   // Randomise starting stimuli
   var stimuli = {
@@ -22,11 +28,10 @@ Qualtrics.SurveyEngine.addOnload(function () {
     };
   }
 
-  var isAPunishment = false;
+  var isAPunishment = stimuli.A === "punishment";
 
   // Function to show instructions before starting
   function showStartInstruction() {
-    document.body.innerHTML = ""; // Clear the page
     var startDiv = document.createElement("div");
     startDiv.id = "startInstruction";
     startDiv.innerHTML = "Click <b>HERE</b> to start"; // Add your instruction
@@ -34,7 +39,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     startDiv.style.textAlign = "center";
     startDiv.style.marginTop = "200px";
     startDiv.style.cursor = "pointer"; // Change cursor to indicate clickable
-    document.body.appendChild(startDiv);
+    document.body.prepend(startDiv);
 
     // Wait for user to click before starting the task
     startDiv.onclick = function () {
@@ -45,14 +50,13 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to show fixation cross
   function showFixationCross() {
-    document.body.innerHTML = ""; // Clear the page
     var fixationCross = document.createElement("div");
     fixationCross.id = "fixationCross";
     fixationCross.innerHTML = "+";
     fixationCross.style.fontSize = "32px";
     fixationCross.style.textAlign = "center";
     fixationCross.style.marginTop = "200px";
-    document.body.appendChild(fixationCross);
+    document.body.prepend(fixationCross);
 
     setTimeout(function () {
       fixationCross.remove();
@@ -62,15 +66,20 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
   // Function to display stimulus and capture response
   function displayStimulus() {
-    document.body.innerHTML = ""; // Clear the page
+    console.log("Trial", trialNumber);
 
+    reversalOccurred = 0;
     var displayedStimulus;
+    startTime = Date.now();
 
     // Check if we need to show the same stimulus after a reversal
     if (startReversal) {
-      displayedStimulus = isAPunishment ? "A" : "B"; // Use the current reward stimulus
+      displayedStimulus = isAPunishment ? "A" : "B"; // Use the current punishment stimulus
       sameStimulusAfterReversal = true; // Set flag to show the same stimulus for the next trial
       startReversal = false;
+      reversalOccurred = 1;
+
+      console.log("ReversalOccurred");
     } else if (sameStimulusAfterReversal) {
       displayedStimulus = lastStimulus; // Use the last stimulus shown
 
@@ -86,6 +95,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     // Create the container for stimuli
     var stimulusContainer = document.createElement("div");
+    stimulusContainer.id = "stimulusContainer";
     stimulusContainer.style.display = "flex";
     stimulusContainer.style.flexDirection = "column"; // For vertical alignment
     stimulusContainer.style.alignItems = "center"; // Center alignment
@@ -122,13 +132,15 @@ Qualtrics.SurveyEngine.addOnload(function () {
     }
 
     // Append the container to the body
-    document.body.appendChild(stimulusContainer);
+    document.body.prepend(stimulusContainer);
 
     // Capture keyboard input
     var responseCaptured = false;
     var responseTimeout = setTimeout(function () {
       if (!responseCaptured) {
+        responseTime = 0;
         logResponse("none", displayedStimulus, actualOutcome); // No response captured
+        stimulusContainer.remove();
       }
     }, 1500); // Allow 1500 ms to respond
 
@@ -138,17 +150,20 @@ Qualtrics.SurveyEngine.addOnload(function () {
       var key = event.key.toLowerCase();
 
       if (key === "p" || key === "r") {
+        responseTime = Date.now() - startTime;
         responseCaptured = true;
         clearTimeout(responseTimeout); // Stop timeout
         var predictedOutcome = key === "p" ? "punishment" : "reward"; // Prediction based on key press
         logResponse(predictedOutcome, displayedStimulus, actualOutcome); // Log the response
+        stimulusContainer.remove();
       }
     };
   }
 
   // Log the response and provide feedback
   function logResponse(predictedOutcome, stimulus, actualOutcome) {
-    document.body.innerHTML = ""; // Clear the page for feedback
+    var isCorrect = predictedOutcome === actualOutcome ? 1 : 0;
+    var noResponse = 0;
 
     var feedbackDiv = document.createElement("div");
     feedbackDiv.id = "feedback";
@@ -160,7 +175,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     if (predictedOutcome === "none") {
       feedbackDiv.innerHTML = "No Response"; // No response
       feedbackDiv.style.color = "red";
-      Qualtrics.SurveyEngine.setEmbeddedData("NoResponse", 1);
+      noResponse = 1;
     } else if (actualOutcome === "reward") {
       feedbackDiv.innerHTML =
         "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_bMpiEUVsi4mNi6b' alt='Reward' style='width: 100px; height: 100px;'>";
@@ -169,21 +184,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
         "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_V4exMgkjGPOqGEl' style='width: 100px; height: 100px;'>";
     }
 
-    document.body.appendChild(feedbackDiv);
-
-    // Log trial data
-    Qualtrics.SurveyEngine.setEmbeddedData("TrialNumber", trialNumber);
-    Qualtrics.SurveyEngine.setEmbeddedData("DisplayedStimulus", stimulus);
-    Qualtrics.SurveyEngine.setEmbeddedData(
-      "ParticipantPrediction",
-      predictedOutcome
-    );
-    Qualtrics.SurveyEngine.setEmbeddedData("ActualOutcome", actualOutcome);
-    Qualtrics.SurveyEngine.setEmbeddedData("FeedbackGiven", actualOutcome);
-    Qualtrics.SurveyEngine.setEmbeddedData(
-      "IsCorrect",
-      predictedOutcome === actualOutcome ? 1 : 0
-    );
+    document.body.prepend(feedbackDiv);
 
     // If user prediction is accurate, increase the correct streak, else restart counter
     if (predictedOutcome === actualOutcome) correctStreak++;
@@ -211,23 +212,40 @@ Qualtrics.SurveyEngine.addOnload(function () {
     if (correctStreak === correctLimit) {
       // Unepxected Punishment
       // Reverse the reward and punishment
-      isReversed = !isReversed;
-      stimuli.A = isReversed ? "punishment" : "reward"; // Update stimulus A
-      stimuli.B = isReversed ? "reward" : "punishment"; // Update stimulus B
+      stimuli.A = isAPunishment ? "reward" : "punishment"; // Update stimulus A
+      stimuli.B = isAPunishment ? "punishment" : "reward"; // Update stimulus B
       isAPunishment = !isAPunishment;
       startReversal = true;
       correctLimit = Math.floor(Math.random() * 5) + 5; // Reset learning criterion
       correctStreak = 0; // Reset streak after reversal
-      Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 1); // Log reversal
 
-      console.log("ReversalOccurred");
       console.log("is A punishment:", isAPunishment);
     } else if (sameStimulusAfterReversal) {
       lastStimulus = stimulus; // Remember the current stimulus to repeat
+      reversalStreak++;
       if (predictedOutcome === actualOutcome) sameStimulusAfterReversal = false; // If user has learnt, reset the flag for future trials so the next stimulus will be random
     } else {
-      Qualtrics.SurveyEngine.setEmbeddedData("ReversalOccurred", 0); // No reversal in this trial
+      reversalStreak = -1;
     }
+
+    console.log("reversalStreak", reversalStreak);
+
+    data.push({
+      trialNumber: trialNumber,
+      displayStimulus: stimulus,
+      noResponse: noResponse,
+      participantPrediction: predictedOutcome,
+      actualOutcome: actualOutcome,
+      isCorrect: isCorrect,
+      reversalOccurred: reversalOccurred,
+      correctStreak: correctStreak,
+      reversalStreak: reversalStreak,
+      responseTime: responseTime,
+    });
+    console.log("data", data);
+
+    if (trialNumber === totalTrials)
+      Qualtrics.SurveyEngine.setEmbeddedData("Data", JSON.stringify(data));
 
     // Move to the next trial after feedback
     setTimeout(function () {
@@ -239,7 +257,14 @@ Qualtrics.SurveyEngine.addOnload(function () {
         showFixationCross(); // Start next trial
       } else {
         alert("Block complete!");
-        this.clickNextButton(); // Move to next question/block in Qualtrics
+        var nextButton = document.querySelector(".NextButton");
+        if (nextButton) {
+          // Make the button visible
+          nextButton.style.display = "block";
+
+          var question = document.querySelector(".QuestionText");
+          question.innerHTML = "Please proceed by clicking Next";
+        }
       }
     }, 500); // Show feedback for 500 ms
   }
