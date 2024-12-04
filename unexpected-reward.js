@@ -134,11 +134,14 @@ Qualtrics.SurveyEngine.addOnload(function () {
     // Append the container to the body
     document.body.prepend(stimulusContainer);
 
+    let timeoutExpired = false;
+
     // Capture keyboard input
     var responseCaptured = false;
     var responseTimeout = setTimeout(function () {
       if (!responseCaptured) {
         responseTime = 0;
+        timeoutExpired = true;
         logResponse("none", displayedStimulus, actualOutcome); // No response captured
         stimulusContainer.remove();
       }
@@ -146,7 +149,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
     // Listen for key presses
     document.onkeydown = function (event) {
-      if (responseCaptured) return;
+      if (responseCaptured || timeoutExpired) return;
       var key = event.key.toLowerCase();
 
       if (key === "p" || key === "r") {
