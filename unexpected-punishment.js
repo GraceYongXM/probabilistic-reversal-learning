@@ -106,7 +106,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     stimulusA.innerHTML =
       "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_liS2mCAu6ovYGGJ' style='width: 100px; height: 100px;'>";
     stimulusA.style.border =
-      displayedStimulus === "A" ? "5px solid black" : "none"; // Highlight if selected
+      displayedStimulus === "A" ? "5px solid red" : "none"; // Highlight if selected
 
     // Create fixation cross
     var fixationCross = document.createElement("div");
@@ -118,7 +118,7 @@ Qualtrics.SurveyEngine.addOnload(function () {
     stimulusB.innerHTML =
       "<img src='https://nus.au1.qualtrics.com/ControlPanel/Graphic.php?IM=IM_qbvwqRIC7JeRiVX' style='width: 100px; height: 100px;'>";
     stimulusB.style.border =
-      displayedStimulus === "B" ? "5px solid black" : "none"; // Highlight if selected
+      displayedStimulus === "B" ? "5px solid red" : "none"; // Highlight if selected
 
     // Randomise the position of stimulus A and stimulus B
     if (Math.random() < 0.5) {
